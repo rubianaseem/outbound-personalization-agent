@@ -61,3 +61,18 @@ One LLM call generates all 3 emails together (~400-600 tokens total per contact)
 - `TONE_BY_ROLE` in the script maps job title keywords to a tone/angle — extend it for your ICP's common titles
 - Swap `sample_contacts.csv` for live trigger events from Clay, a CDP, or your MAP's activity feed
 - The 3-touch cadence (Day 0/3/7) is set in `SEQUENCE_DAYS` — change freely
+
+## How this runs today (and what production would add)
+
+**Trigger:** none built in — run manually (`python outbound_personalization_agent.py --input ...`) or schedule/trigger it whenever new trigger events land (a Clay webhook, a scheduled export pull). It doesn't watch for new contacts on its own.
+
+**Action taken:** prints the generated 3-email sequence to your terminal. It does **not** send anything — no email is actually sent to the contact. You'd take this output and load it into your sending tool (Instantly, Smartlead, HubSpot/Apollo sequences).
+
+**Self-learning:** no. Tone selection (`TONE_BY_ROLE`) is a hand-coded lookup, not a model that learns from reply/open rates. There's no feedback loop built in.
+
+**Loop:** no persistent process — one pass over the contacts file, then it exits.
+
+**What a production version would add:**
+- A trigger from your enrichment/CDP tool (Clay webhook, or a scheduled pull of "new trigger events today")
+- A write-back/send step: push the generated sequence into Instantly/Smartlead/HubSpot Sequences via their API rather than just printing it
+- Reply/open tracking fed back in (via Trellus/Amplemarket/Qualified) so you could eventually see which trigger types and tones actually get replies
