@@ -76,3 +76,18 @@ One LLM call generates all 3 emails together (~400-600 tokens total per contact)
 - A trigger from your enrichment/CDP tool (Clay webhook, or a scheduled pull of "new trigger events today")
 - A write-back/send step: push the generated sequence into Instantly/Smartlead/HubSpot Sequences via their API rather than just printing it
 - Reply/open tracking fed back in (via Trellus/Amplemarket/Qualified) so you could eventually see which trigger types and tones actually get replies
+
+## v2: drafts from live account context, at scale
+
+The agent now keeps a `brain/<contact>.json` (+ human-readable `.md`) file per contact that accumulates trigger events (funding, exec hires, etc.) and intent signals across runs, and tracks which angles have already been sent so it won't repeat itself. Every sequence is drafted FROM that accumulated context rather than from a single spreadsheet row, and `--batch` drafts fresh sequences for every contact you're tracking in one run.
+
+```
+python outbound_personalization_agent.py --input sample_contacts.csv        # first pass, drafts from initial context
+python outbound_personalization_agent.py --input sample_contacts_day2.csv   # new context lands on the same contact
+python outbound_personalization_agent.py --batch                            # draft for every tracked contact at once
+python outbound_personalization_agent.py --show "Jordan Lee"                # full accumulated brain file
+```
+
+`sample_contacts_day2.csv` adds a demo request for Jordan Lee on top of their existing Series C trigger — the next sequence is drafted with both pieces of context available.
+
+The `brain/` directory is where this state lives; it's gitignored so your own runs start clean.
